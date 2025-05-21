@@ -16,6 +16,7 @@ public class ClientHandler implements Runnable {
     private PrintWriter writer;
 
 
+    boolean isAuthenticated = false;
     public ClientHandler(Socket clientSokect, ArrayList<ClientHandler> clients) {
 
             this.socket = socket;
@@ -37,34 +38,45 @@ public class ClientHandler implements Runnable {
         try {
             String message;
             while ((message = reader.readLine()) != null) {
-
-                // TODO: Read incoming message from the input stream
-
                 System.out.println("Received: " + message);
 
-                // TODO: Process the message
-                if (message.equals("LIST_FILES")) {
-                    sendFileList();
-                } else if (message.startsWith("DOWNLOAD:")) {
-                    String fileName = message.substring("DOWNLOAD:".length());
-                    sendFile(fileName);
-                } else if (message.startsWith("UPLOAD:")) {
+                if (message.startsWith("LOGIN:")) {
                     String[] parts = message.split(":");
                     if (parts.length == 3) {
-                        String fileName = parts[1];
-                        int length = Integer.parseInt(parts[2]);
-                        receiveFile(fileName, length);
+                        String username = parts[1];
+                        String password = parts[2];
+                        handleLogin(username, password);
                     } else {
-                        writer.println("ERROR: Invalid UPLOAD format.");
+                        writer.println("ERROR: Invalid LOGIN format.");
+                    }
+                } else if (isAuthenticated) {
+                    if (message.equals("LIST_FILES")) {
+                        sendFileList();
+                    } else if (message.startsWith("DOWNLOAD:")) {
+                        String fileName = message.substring("DOWNLOAD:".length());
+                        sendFile(fileName);
+                    } else if (message.startsWith("UPLOAD:")) {
+                        String[] parts = message.split(":");
+                        if (parts.length == 3) {
+                            String fileName = parts[1];
+                            int length = Integer.parseInt(parts[2]);
+                            receiveFile(fileName, length);
+                        } else {
+                            writer.println("ERROR: Invalid UPLOAD format.");
+                        }
+                    } else if (message.equals("LOGOUT")) {
+                        writer.println("LOGOUT_SUCCESS");
+                        break;
+                    } else {
+                        broadcast("[" + socket.getInetAddress() + "]: " + message);
                     }
                 } else {
-                    broadcast("[" + socket.getInetAddress() + "]: " + message);
+                    writer.println("ERROR: Please login first.");
                 }
             }
         } catch (Exception e) {
             System.out.println("Client error: " + e.getMessage());
         } finally {
-            //TODO: Update the clients list in Server
             allClients.remove(this);
             try {
                 socket.close();
@@ -73,6 +85,7 @@ public class ClientHandler implements Runnable {
             }
         }
     }
+
 
     private void sendMessage(String msg){
         //TODO: send the message (chat) to the client
@@ -184,6 +197,7 @@ public class ClientHandler implements Runnable {
         // TODO: Send success or failure response to the client
         if (authenticated) {
             writer.println("LOGIN_SUCCESS");
+            isAuthenticated = true;
         } else {
             writer.println("LOGIN_FAILED");
         }

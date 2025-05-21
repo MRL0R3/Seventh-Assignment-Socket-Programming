@@ -10,8 +10,10 @@ public class ClientHandler implements Runnable {
     private Socket socket;
     private List<ClientHandler> allClients;
     private String username;
+    private OutputStream outputStream;
     private BufferedReader reader;
     private PrintWriter writer;
+
 
     public ClientHandler(Socket clientSokect, ArrayList<ClientHandler> clients) {
 
@@ -25,7 +27,7 @@ public class ClientHandler implements Runnable {
                 OutputStream output = socket.getOutputStream();
                 writer = new PrintWriter(output , true);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                System.out.println("Error initializing client I/O streams: " + e.getMessage());
             }
     }
 
@@ -96,9 +98,28 @@ public class ClientHandler implements Runnable {
         writer.println("Files: " + fileList);
     }
 
-    private void sendFile(String fileName){
+    private void sendFile(String fileName) throws FileNotFoundException {
+        File file = new File(SERVER_DIRECTORY);
         // TODO: Send file name and size to client
+        if (!file.exists() || !file.isFile()){
+            writer.println("ERROR: File not found");
+            return;
+        }
         // TODO: Send file content as raw bytes
+        try (BufferedInputStream fileStream = new BufferedInputStream(new FileInputStream(file))){
+            writer.println("FILE_START:" + file.getName() + ":" + file.length());
+
+            byte[] buffer = new byte[4096];
+            int byteRead;
+            while ((byteRead = fileStream.read(buffer)) != -1) {
+                outputStream.write(buffer,0 , byteRead);
+                outputStream.flush();
+            }
+            writer.println("FILE_END");
+
+        } catch (IOException e) {
+            writer.println("ERROR: Failed to send file.");
+        }
     }
     private void receiveFile(String filename, int fileLength)
     {

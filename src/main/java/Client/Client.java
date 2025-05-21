@@ -57,9 +57,14 @@ public class Client {
                     loggedIn = false;
                 }
 
-                if ("SUCCESS".equals(response)) {
+                if ("LOGIN_SUCCESS".equals(response)) {
                     System.out.println("Logged in successfully!");
                     loggedIn =  true;
+
+                    File userDir = new File("resources/Client/" + username);
+                    if (!userDir.exists()) {
+                        userDir.mkdirs();
+                    }
                 } else {
                     System.out.println("Login failed. Please try again.");
                     loggedIn = false;
@@ -99,8 +104,9 @@ public class Client {
 
     private static void sendLoginRequest(String username, String password) {
         //✅: send the login request
-        writer.println("LOGIN " + username + " " + password);
+        writer.println("LOGIN:" + username + ":" + password);
     }
+
     private static void enterChat(Scanner scanner , Socket socket) throws IOException {
         System.out.print("You have entered the chat ");
 
@@ -137,6 +143,10 @@ public class Client {
         File userDir = new File("resources/Client/" + username);
         File[] files = userDir.listFiles((dir, name) -> new File(dir, name).isFile());
 
+        if (!userDir.exists()) {
+            userDir.mkdirs();
+        }
+
         if (files == null || files.length == 0) {
             System.out.println("No files to upload.");
             return;
@@ -165,7 +175,7 @@ public class Client {
         long fileSize = selectedFile.length();
         String fileName = selectedFile.getName();
         // ✅: Notify the server that a file upload is starting (e.g., send file metadata)
-        writer.println("UPLOAD " + fileName + " " + fileSize);
+        writer.println("UPLOAD:" + fileName + ":" + fileSize);
         // ✅: Read the file into a byte array and send it over the socket
         try (FileInputStream fis = new FileInputStream(selectedFile)) {
             byte[] buffer = new byte[4096];
@@ -212,7 +222,7 @@ public class Client {
         }
 
         String fileName = fileNames[choice];
-        writer.println("DOWNLOAD " + fileName);
+        writer.println("DOWNLOAD:" + fileName);
 
         String fileSizeLine = reader.readLine();
         if (fileSizeLine == null) {
@@ -233,7 +243,11 @@ public class Client {
             while (totalRead < fileSize && (bytesRead = inputStream.read(buffer)) != -1) {
                 fos.write(buffer, 0, bytesRead);
                 totalRead += bytesRead;
+
+                int percent = (int)((totalRead * 100) / fileSize);
+                System.out.print("\rDownloading... " + percent + "%");
             }
+            System.out.println("\nDownload complete.");
             System.out.println("File downloaded successfully to " + targetFile);
         } catch (IOException e) {
             System.out.println("Error receiving file: " + e.getMessage());

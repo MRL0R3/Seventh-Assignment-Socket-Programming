@@ -1,5 +1,6 @@
 package Server;
 
+
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -19,8 +20,8 @@ public class ClientHandler implements Runnable {
     boolean isAuthenticated = false;
     public ClientHandler(Socket clientSokect, ArrayList<ClientHandler> clients) {
 
-            this.socket = socket;
-            this.allClients = allClients;
+            this.socket = clientSokect;
+            this.allClients = clients;
             try{
                 InputStream input = socket.getInputStream();
                 InputStreamReader inputReader = new InputStreamReader(input);
@@ -88,11 +89,11 @@ public class ClientHandler implements Runnable {
 
 
     private void sendMessage(String msg){
-        //TODO: send the message (chat) to the client
+        //✅: send the message (chat) to the client
         writer.println(msg);
     }
     private void broadcast(String msg) throws IOException {
-        //TODO: send the message to every other user currently in the chat room
+        //✅: send the message to every other user currently in the chat room
         synchronized (allClients) {
             for (ClientHandler client : allClients){
                 if (client != this){
@@ -103,13 +104,13 @@ public class ClientHandler implements Runnable {
     }
 
     private void sendFileList(){
-        // TODO: List all files in the server directory
+        // ✅: List all files in the server directory
         File dir = new File(SERVER_DIRECTORY);
         if (!dir.exists() || !dir.isDirectory()){
             writer.println("ERROR: Server directory not found.");
             return;
         }
-        // TODO: Send a message containing file names as a comma-separated string
+        // ✅: Send a message containing file names as a comma-separated string
         File[] files = dir.listFiles();
         if (files == null || files.length == 0){
             writer.println("No files available on server.");
@@ -131,12 +132,12 @@ public class ClientHandler implements Runnable {
 
     private void sendFile(String fileName) throws FileNotFoundException {
         File file = new File(SERVER_DIRECTORY);
-        // TODO: Send file name and size to client
+        // ✅: Send file name and size to client
         if (!file.exists() || !file.isFile()){
             writer.println("ERROR: File not found");
             return;
         }
-        // TODO: Send file content as raw bytes
+        // ✅: Send file content as raw bytes
         try (BufferedInputStream fileStream = new BufferedInputStream(new FileInputStream(file))){
             writer.println("FILE_START:" + file.getName() + ":" + file.length());
 
@@ -160,7 +161,7 @@ public class ClientHandler implements Runnable {
         }
 
         File file = new File(dir , filename);
-        // TODO: Receive uploaded file content and store it in a byte array
+        // ✅: Receive uploaded file content and store it in a byte array
         try (BufferedOutputStream fileOut = new BufferedOutputStream(new FileOutputStream(file))) {
             byte[] buffer = new byte[4096];
             int remaining = fileLength;
@@ -175,10 +176,10 @@ public class ClientHandler implements Runnable {
             writer.println("ERROR: Failed to receive file.");;
         }
 
-        // TODO: after the upload is done, save it using saveUploadedFile
+        // ✅: after the upload is done, save it using saveUploadedFile
     }
     private void saveUploadedFile(String filename, byte[] data) throws IOException {
-        // TODO: Save the byte array to a file in the Server's resources folder
+        // ✅: Save the byte array to a file in the Server's resources folder
         File dir = new File(SERVER_DIRECTORY);
         if (!dir.exists()) {
             dir.mkdirs();
@@ -190,18 +191,16 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void handleLogin(String username, String password) throws IOException, ClassNotFoundException {
-        // TODO: Call Server.authenticate(username, password) to check credentials
-        boolean authenticated = Server.authenticate(username, password);
-
-        // TODO: Send success or failure response to the client
-        if (authenticated) {
-            writer.println("LOGIN_SUCCESS");
+    private void handleLogin(String username, String password) throws IOException {
+        if (Server.authenticate(username, password)) {
             isAuthenticated = true;
+            writer.println("LOGIN_SUCCESS");
+            System.out.println("User authenticated: " + username);
         } else {
             writer.println("LOGIN_FAILED");
+            System.out.println("Login failed for: " + username);
         }
-
     }
+
 
 }

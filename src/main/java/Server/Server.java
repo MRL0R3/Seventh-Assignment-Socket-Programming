@@ -20,11 +20,11 @@ public class Server {
 
     public static void main(String[] args) throws Exception {
         final int PORT = 12345;
-        // TODO: Create a ServerSocket listening on a port (e.g., 12345)
+        // ✅: Create a ServerSocket listening on a port (e.g., 12345)
         ServerSocket serverSocket = new ServerSocket(PORT);
 
 
-        // TODO: Accept incoming client connections in a loop
+        // ✅: Accept incoming client connections in a loop
         //       For each connection:
         //       - Create a new ClientHandler object
         //       - Add it to the 'clients' list

@@ -10,6 +10,7 @@ public class ClientHandler implements Runnable {
     private Socket socket;
     private List<ClientHandler> allClients;
     private String username;
+    private InputStream inputStream
     private OutputStream outputStream;
     private BufferedReader reader;
     private PrintWriter writer;
@@ -121,8 +122,28 @@ public class ClientHandler implements Runnable {
             writer.println("ERROR: Failed to send file.");
         }
     }
-    private void receiveFile(String filename, int fileLength)
-    {
+    private void receiveFile(String filename, int fileLength) throws FileNotFoundException {
+        File dir = new File(SERVER_DIRECTORY);
+
+        if (!dir.exists()){
+            dir.mkdirs();
+        }
+
+        File file = new File(dir , filename);
+        try (BufferedOutputStream fileOut = new BufferedOutputStream(new FileOutputStream(file))) {
+            byte[] buffer = new byte[4096];
+            int remaining = fileLength;
+            int byteRead;
+            while (remaining > 0 && (byteRead = inputStream.read(buffer , 0 ,Math.min(buffer.length , remaining))) != -1 ){
+                fileOut.write(buffer, 0 , byteRead);
+                remaining -= byteRead;
+            }
+            fileOut.flush();
+            writer.println("UPLOAD_SUCCESSFUL");
+        } catch (IOException e) {
+            writer.println("ERROR: Failed to receive file.");;
+        }
+
         // TODO: Receive uploaded file content and store it in a byte array
         // TODO: after the upload is done, save it using saveUploadedFile
     }

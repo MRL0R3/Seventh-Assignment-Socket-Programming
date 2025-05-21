@@ -1,21 +1,31 @@
 package Server;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClientHandler implements Runnable {
     private Socket socket;
-    // TODO: Declare a variable to hold the input stream from the socket
-    // TODO: Declare a variable to hold the output stream from the socket
     private List<ClientHandler> allClients;
     private String username;
+    private BufferedReader reader;
+    private PrintWriter writer;
 
     public ClientHandler(Socket clientSokect, ArrayList<ClientHandler> clients) {
 
             this.socket = socket;
             this.allClients = allClients;
+            try{
+                InputStream input = socket.getInputStream();
+                InputStreamReader inputReader = new InputStreamReader(input);
+                reader = new BufferedReader(inputReader);
+
+                OutputStream output = socket.getOutputStream();
+                writer = new PrintWriter(output , true);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
     }
 
     @Override

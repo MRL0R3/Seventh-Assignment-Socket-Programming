@@ -44,7 +44,7 @@ public class ClientHandler implements Runnable {
                 if (message.startsWith("LOGIN:")) {
                     String[] parts = message.split(":");
                     if (parts.length == 3) {
-                        String username = parts[1];
+                        username = parts[1];
                         String password = parts[2];
                         handleLogin(username, password);
                     } else {
@@ -69,7 +69,7 @@ public class ClientHandler implements Runnable {
                         writer.println("LOGOUT_SUCCESS");
                         break;
                     } else {
-                        broadcast("[" + socket.getInetAddress() + "]: " + message);
+                        broadcast("[" + this.username + "]: " + message);
                     }
                 } else {
                     writer.println("ERROR: Please login first.");
@@ -104,6 +104,10 @@ public class ClientHandler implements Runnable {
     }
 
     private void sendFileList(){
+
+        System.out.println("Looking for server directory at: " + SERVER_DIRECTORY);
+        System.out.println("Absolute path: " + new File(SERVER_DIRECTORY).getAbsolutePath());
+
         // ✅: List all files in the server directory
         File dir = new File(SERVER_DIRECTORY);
         if (!dir.exists() || !dir.isDirectory()){

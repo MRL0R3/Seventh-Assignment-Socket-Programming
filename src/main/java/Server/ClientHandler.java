@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientHandler implements Runnable {
+    private static final String SERVER_DIRECTORY = "./server_files";
     private Socket socket;
     private List<ClientHandler> allClients;
     private String username;
@@ -70,8 +71,31 @@ public class ClientHandler implements Runnable {
 
     private void sendFileList(){
         // TODO: List all files in the server directory
+        File dir = new File(SERVER_DIRECTORY);
+        if (!dir.exists() || !dir.isDirectory()){
+            writer.println("ERROR: Server directory not found.");
+            return;
+        }
         // TODO: Send a message containing file names as a comma-separated string
+        File[] files = dir.listFiles();
+        if (files == null || files.length == 0){
+            writer.println("No files available on server.");
+            return;
+        }
+
+        StringBuilder fileList = new StringBuilder();
+        for (File file : files){
+            if(file.isFile()){
+                fileList.append(file.getName()).append(",");
+            }
+        }
+        // remove the ","
+        if(fileList.length() > 0){
+            fileList.setLength((fileList.length() - 1));
+        }
+        writer.println("Files: " + fileList);
     }
+
     private void sendFile(String fileName){
         // TODO: Send file name and size to client
         // TODO: Send file content as raw bytes

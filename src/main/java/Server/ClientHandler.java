@@ -31,23 +31,41 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            while (true) {
+            String msg;
+
+            while ((msg = reader.readLine()) != null) {
                 // TODO: Read incoming message from the input stream
+                System.out.println("Received:" + msg);
                 // TODO: Process the message
+                broadcast("["+socket.getInetAddress()+"]"+msg);
             }
         } catch (Exception e) {
 
         } finally {
             //TODO: Update the clients list in Server
+            allClients.remove(this);
+            try {
+                socket.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
 
     private void sendMessage(String msg){
         //TODO: send the message (chat) to the client
+        writer.println(msg);
     }
     private void broadcast(String msg) throws IOException {
         //TODO: send the message to every other user currently in the chat room
+        synchronized (allClients) {
+            for (ClientHandler client : allClients){
+                if (client != this){
+                    client.sendMessage(msg);
+                }
+            }
+        }
     }
 
     private void sendFileList(){

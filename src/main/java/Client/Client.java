@@ -39,7 +39,7 @@ public class Client {
             boolean loggedIn = false;
             while (!loggedIn) {
                 System.out.print("Username: ");
-                String username = scanner.nextLine();
+                username = scanner.nextLine();
                 System.out.print("Password: ");
                 String password = scanner.nextLine();
 
@@ -141,6 +141,7 @@ public class Client {
         //✅: list all files in the resources/Client/<username> folder
 
         File userDir = new File("resources/Client/" + username);
+        
         File[] files = userDir.listFiles((dir, name) -> new File(dir, name).isFile());
 
         if (!userDir.exists()) {
@@ -224,12 +225,13 @@ public class Client {
         String fileName = fileNames[choice];
         writer.println("DOWNLOAD:" + fileName);
 
+
         String fileSizeLine = reader.readLine();
-        if (fileSizeLine == null) {
-            System.out.println("Failed to retrieve file size.");
+
+        if (fileSizeLine == null || !fileSizeLine.matches("\\d+")) {
+            System.out.println("Failed to retrieve file size: " + fileSizeLine);
             return;
         }
-
         long fileSize = Long.parseLong(fileSizeLine);
         Path userDir = Paths.get("resources", "Client", username);
         Files.createDirectories(userDir);

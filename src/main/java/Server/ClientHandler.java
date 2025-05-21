@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientHandler implements Runnable {
-    private static final String SERVER_DIRECTORY = "./server_files";
+    private static final String SERVER_DIRECTORY = "resources/Server/server_files";
     private Socket socket;
     private List<ClientHandler> allClients;
     private String username;

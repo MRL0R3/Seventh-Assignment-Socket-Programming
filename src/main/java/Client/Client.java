@@ -224,12 +224,13 @@ public class Client {
         String fileName = fileNames[choice];
         writer.println("DOWNLOAD:" + fileName);
 
+
         String fileSizeLine = reader.readLine();
-        if (fileSizeLine == null) {
-            System.out.println("Failed to retrieve file size.");
+
+        if (fileSizeLine == null || !fileSizeLine.matches("\\d+")) {
+            System.out.println("Failed to retrieve file size: " + fileSizeLine);
             return;
         }
-
         long fileSize = Long.parseLong(fileSizeLine);
         Path userDir = Paths.get("resources", "Client", username);
         Files.createDirectories(userDir);

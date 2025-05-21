@@ -2,6 +2,7 @@ package Server;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClientHandler implements Runnable {
@@ -11,8 +12,10 @@ public class ClientHandler implements Runnable {
     private List<ClientHandler> allClients;
     private String username;
 
-    public ClientHandler() {
-        // TODO: Modify the constructor as needed
+    public ClientHandler(Socket clientSokect, ArrayList<ClientHandler> clients) {
+
+            this.socket = socket;
+            this.allClients = allClients;
     }
 
     @Override

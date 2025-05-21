@@ -10,7 +10,7 @@ public class ClientHandler implements Runnable {
     private Socket socket;
     private List<ClientHandler> allClients;
     private String username;
-    private InputStream inputStream
+    private InputStream inputStream;
     private OutputStream outputStream;
     private BufferedReader reader;
     private PrintWriter writer;
@@ -35,27 +35,44 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            String msg;
+            String message;
+            while ((message = reader.readLine()) != null) {
 
-            while ((msg = reader.readLine()) != null) {
                 // TODO: Read incoming message from the input stream
-                System.out.println("Received:" + msg);
+
+                System.out.println("Received: " + message);
+
                 // TODO: Process the message
-                broadcast("["+socket.getInetAddress()+"]"+msg);
+                if (message.equals("LIST_FILES")) {
+                    sendFileList();
+                } else if (message.startsWith("DOWNLOAD:")) {
+                    String fileName = message.substring("DOWNLOAD:".length());
+                    sendFile(fileName);
+                } else if (message.startsWith("UPLOAD:")) {
+                    String[] parts = message.split(":");
+                    if (parts.length == 3) {
+                        String fileName = parts[1];
+                        int length = Integer.parseInt(parts[2]);
+                        receiveFile(fileName, length);
+                    } else {
+                        writer.println("ERROR: Invalid UPLOAD format.");
+                    }
+                } else {
+                    broadcast("[" + socket.getInetAddress() + "]: " + message);
+                }
             }
         } catch (Exception e) {
-
+            System.out.println("Client error: " + e.getMessage());
         } finally {
             //TODO: Update the clients list in Server
             allClients.remove(this);
             try {
                 socket.close();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                // Ignore
             }
         }
     }
-
 
     private void sendMessage(String msg){
         //TODO: send the message (chat) to the client
@@ -130,6 +147,7 @@ public class ClientHandler implements Runnable {
         }
 
         File file = new File(dir , filename);
+        // TODO: Receive uploaded file content and store it in a byte array
         try (BufferedOutputStream fileOut = new BufferedOutputStream(new FileOutputStream(file))) {
             byte[] buffer = new byte[4096];
             int remaining = fileLength;
@@ -144,16 +162,32 @@ public class ClientHandler implements Runnable {
             writer.println("ERROR: Failed to receive file.");;
         }
 
-        // TODO: Receive uploaded file content and store it in a byte array
         // TODO: after the upload is done, save it using saveUploadedFile
     }
     private void saveUploadedFile(String filename, byte[] data) throws IOException {
         // TODO: Save the byte array to a file in the Server's resources folder
+        File dir = new File(SERVER_DIRECTORY);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File file = new File(dir, filename);
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            fos.write(data);
+            fos.flush();
+        }
     }
 
     private void handleLogin(String username, String password) throws IOException, ClassNotFoundException {
         // TODO: Call Server.authenticate(username, password) to check credentials
+        boolean authenticated = Server.authenticate(username, password);
+
         // TODO: Send success or failure response to the client
+        if (authenticated) {
+            writer.println("LOGIN_SUCCESS");
+        } else {
+            writer.println("LOGIN_FAILED");
+        }
+
     }
 
 }
